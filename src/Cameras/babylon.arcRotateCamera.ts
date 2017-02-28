@@ -293,7 +293,7 @@ module BABYLON {
             if (this.inertialAlphaOffset !== 0 || this.inertialBetaOffset !== 0 || this.inertialRadiusOffset !== 0) {
                 
                 if (this.getScene().useRightHandedSystem) {
-                    this.alpha -= this.beta <= 0 ? -this.inertialAlphaOffset : this.inertialAlphaOffset;
+                    this.alpha -= this.beta <= 0 ? this.inertialAlphaOffset : -this.inertialAlphaOffset;
                 } else {
                     this.alpha += this.beta <= 0 ? -this.inertialAlphaOffset : this.inertialAlphaOffset;
                 }
@@ -388,14 +388,14 @@ module BABYLON {
             this.radius = radiusv3.length();
 
             // Alpha
-            this.alpha = Math.acos(radiusv3.x / Math.sqrt(Math.pow(radiusv3.x, 2) + Math.pow(radiusv3.z, 2)));
+            this.alpha = Math.acos(radiusv3.x / Math.sqrt(Math.pow(radiusv3.x, 2) + Math.pow(radiusv3.y, 2)));
 
-            if (radiusv3.z < 0) {
+            if (radiusv3.y < 0) {
                 this.alpha = 2 * Math.PI - this.alpha;
             }
 
             // Beta
-            this.beta = Math.acos(radiusv3.y / this.radius);
+            this.beta = Math.acos(radiusv3.z / this.radius);
 
             this._checkLimits();
         }
@@ -435,7 +435,7 @@ module BABYLON {
             }
 
             var target = this._getTargetPosition();
-            target.addToRef(new Vector3(this.radius * cosa * sinb, this.radius * cosb, this.radius * sina * sinb), this._newPosition);
+            target.addToRef(new Vector3(this.radius * cosa * sinb, this.radius * sina * sinb, this.radius * cosb), this._newPosition);
             if (this.getScene().collisionsEnabled && this.checkCollisions) {
                 if (!this._collider) {
                     this._collider = new Collider();
