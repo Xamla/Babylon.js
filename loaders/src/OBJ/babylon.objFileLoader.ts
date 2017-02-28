@@ -155,10 +155,10 @@ module BABYLON {
 
         /**
          * Gets the texture for the material.
-         * 
+         *
          * If the material is imported from input file,
          * We sanitize the url to ensure it takes the textre from aside the material.
-         * 
+         *
          * @param rootUrl The root url to load from
          * @param value The value stored in the mtl
          * @return The Texture
@@ -229,17 +229,17 @@ module BABYLON {
             var pathOfFile = BABYLON.Tools.BaseUrl + rootUrl + url;
 
             // Loads through the babylon tools to allow fileInput search.
-            BABYLON.Tools.LoadFile(pathOfFile, 
-                onSuccess, 
-                null, 
-                null, 
-                false, 
+            BABYLON.Tools.LoadFile(pathOfFile,
+                onSuccess,
+                null,
+                null,
+                false,
                 () => { console.warn("Error - Unable to load " + pathOfFile); });
         }
 
         public importMesh(meshesNames: any, scene: Scene, data: any, rootUrl: string, meshes: AbstractMesh[], particleSystems: ParticleSystem[], skeletons: Skeleton[]): boolean {
             //get the meshes from OBJ file
-            var loadedMeshes = this._parseSolid(meshesNames, scene, data, rootUrl);
+            var loadedMeshes = this._parseSolid(meshesNames, scene, data, rootUrl, scene.useRightHandedSystem);
             //Push meshes from OBJ file into the variable mesh of this function
             if (meshes) {
                 loadedMeshes.forEach(function (mesh) {
@@ -266,7 +266,7 @@ module BABYLON {
          * @returns Array<AbstractMesh>
          * @private
          */
-        private _parseSolid(meshesNames: any, scene: BABYLON.Scene, data: string, rootUrl: string): Array<AbstractMesh> {
+        private _parseSolid(meshesNames: any, scene: BABYLON.Scene, data: string, rootUrl: string, rightHanded: boolean): Array<AbstractMesh> {
 
             var positions: Array<BABYLON.Vector3> = [];      //values for the positions of vertices
             var normals: Array<BABYLON.Vector3> = [];      //Values for the normals
@@ -581,6 +581,9 @@ module BABYLON {
 
             //Split the file into lines
             var lines = data.split('\n');
+            var yIndex = rightHanded ? 3 : 2;
+            var zIndex = rightHanded ? 2 : 3;
+            var handFactor = rightHanded ? -1 : 1;
             //Look at each line
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
@@ -598,8 +601,8 @@ module BABYLON {
                     //Add the Vector in the list of positions
                     positions.push(new BABYLON.Vector3(
                         parseFloat(result[1]),
-                        parseFloat(result[2]),
-                        parseFloat(result[3])
+                        handFactor * parseFloat(result[yIndex]),
+                        parseFloat(result[zIndex])
                     ));
 
                 } else if ((result = this.normalPattern.exec(line)) !== null) {
@@ -609,8 +612,8 @@ module BABYLON {
                     //Add the Vector in the list of normals
                     normals.push(new BABYLON.Vector3(
                         parseFloat(result[1]),
-                        parseFloat(result[2]),
-                        parseFloat(result[3])
+                        handFactor * parseFloat(result[yIndex]),
+                        parseFloat(result[zIndex])
                     ));
 
                 } else if ((result = this.uvPattern.exec(line)) !== null) {
