@@ -37,7 +37,17 @@ module BABYLON {
                 //stl mesh name can be empty as well
                 meshName = meshName || "stlmesh";
                 var babylonMesh = new Mesh(meshName, scene);
-                this.parseSolid(babylonMesh, matches[2]);
+                this.parseSolid(babylonMesh, matches[2], scene.useRightHandedSystem);
+
+                //if a right handed coordinate system is used, we have to change direction of backface culling
+                if (scene.useRightHandedSystem === true) {
+                  var babylonMaterial = scene.getMaterialByName("stlmaterial");
+                  if (!babylonMaterial) {
+                    babylonMaterial = new BABYLON.StandardMaterial("stlmaterial", scene);
+                    babylonMaterial.sideOrientation = BABYLON.Material.CounterClockWiseSideOrientation;
+                  }
+                  babylonMesh.material = babylonMaterial
+                }
             }
 
             return true;
@@ -53,11 +63,14 @@ module BABYLON {
             return result;
         }
 
-        private parseSolid(mesh: Mesh, solidData: string) {
+        private parseSolid(mesh: Mesh, solidData: string, rightHanded: boolean) {
             var normals = [];
             var positions = [];
             var indices = [];
             var indicesCount = 0;
+            //switch y and z axis depending on handedness of the coordinate system
+            var yIndex = rightHanded ? 3 : 5;
+            var zIndex = rightHanded ? 5 : 3;
 
             //load facets, ignoring loop as the standard doesn't define it can contain more than vertices
             var matches;
@@ -69,11 +82,11 @@ module BABYLON {
                 if (!normalMatches) {
                     continue;
                 }
-                var normal = [Number(normalMatches[1]), Number(normalMatches[5]), Number(normalMatches[3])];
+                var normal = [Number(normalMatches[1]), Number(normalMatches[yIndex]), Number(normalMatches[zIndex])];
 
                 var vertexMatch;
                 while (vertexMatch = this.vertexPattern.exec(facet)) {
-                    positions.push(Number(vertexMatch[1]), Number(vertexMatch[5]), Number(vertexMatch[3]));
+                  positions.push(Number(vertexMatch[1]), Number(vertexMatch[yIndex]), Number(vertexMatch[zIndex]));
                     normals.push(normal[0], normal[1], normal[2]);
                 }
                 indices.push(indicesCount++, indicesCount++, indicesCount++);
