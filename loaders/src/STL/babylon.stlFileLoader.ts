@@ -38,6 +38,8 @@ module BABYLON {
                 meshName = meshName || "stlmesh";
                 var babylonMesh = new Mesh(meshName, scene);
                 this.parseSolid(babylonMesh, matches[2]);
+
+                meshes.push(babylonMesh);
             }
 
             return true;
